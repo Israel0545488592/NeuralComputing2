@@ -68,9 +68,9 @@ class SOM:
     # get centroid by id, not obvious if the shape isn't 1 dimentional
     def get_centroid(self, id) -> centroid:
 
-        if len(self.shape) == 1:
-            return self.cen[id]
-        return self.cen[id // self.shape[1]][id % self.shape[1]]    # matrix like structure
+        #if len(self.shape) == 1:
+        return self.cen[id]
+        #return self.cen[id // self.shape[1]][id % self.shape[1]]    # matrix like structure
 
 
     def get_neighbours(self, id: int):
@@ -84,7 +84,7 @@ class SOM:
             if id +1 < self.shape[0]:
                 neighbours.append(self.get_centroid(id +1))
         else:
-            if (id -1) % self.shape[1] != self.shape -1:
+            if (id -1) % self.shape[1] != self.shape[1] -1:
                  neighbours.append(self.get_centroid(id -1))
             if (id +1) % self.shape[1] != 0:
                  neighbours.append(self.get_centroid(id +1))
@@ -146,7 +146,7 @@ class SOM:
 
                 itr += 1
 
-            momentum *=2            
+            momentum *=2          
 
         return self.cen.copy(), itr
 
@@ -155,13 +155,13 @@ class SOM:
     def display(self, ax=None):
         if ax == None:
             ax = plt.gca()
-        get_loc_func = lambda c: c.get_loc()
-        vfunc = np.vectorize(get_loc_func)
-        dots = vfunc(self.cen)
-        ax.scatter(dots)
+       
+        dots = np.array([c.get_loc() for c in self.cen.flatten()])
+        ax.scatter(dots[:,0],dots[:,1])
+        dots = dots.reshape(list(self.shape) + list(self.cen.flatten()[0].get_loc().shape))
         ax.add_collection(LineCollection(dots))
-        if dots.shape == 3:
-            ax.add_collection(LineCollection(dots.transpose(1,0,2)))
+        if dots.shape[-1] == 2:
+            ax.add_collection(LineCollection(dots.transpose(1,0,2),cmap = plt.cm.brg))
         plt.show()
 
 
