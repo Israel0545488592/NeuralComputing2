@@ -68,7 +68,7 @@ class SOM:
     # get centroid by id, not obvious if the shape isn't 1 dimentional
     def get_centroid(self, id) -> centroid:
 
-        if len(self.shape == 1):
+        if len(self.shape) == 1:
             return self.cen[id]
         return self.cen[id // self.shape[1]][id % self.shape[1]]    # matrix like structure
 
@@ -80,18 +80,18 @@ class SOM:
         # asserting in-bounds
         if len(self.shape) == 1:
             if id -1 >= 0:
-                neighbours.append[self.get_centroid(id -1)]
+                neighbours.append(self.get_centroid(id -1))
             if id +1 < self.shape[0]:
-                neighbours.append[self.get_centroid(id +1)]
+                neighbours.append(self.get_centroid(id +1))
         else:
             if (id -1) % self.shape[1] != self.shape -1:
-                 neighbours.append[self.get_centroid(id -1)]
+                 neighbours.append(self.get_centroid(id -1))
             if (id +1) % self.shape[1] != 0:
-                 neighbours.append[self.get_centroid(id +1)]
+                 neighbours.append(self.get_centroid(id +1))
             if (id + self.shape[1]) < self.shape[0] * self.shape[1]:
-                 neighbours.append[self.get_centroid(id + self.shape[1])]
+                 neighbours.append(self.get_centroid(id + self.shape[1]))
             if (id - self.shape[1]) >= 0:
-                 neighbours.append[self.get_centroid(id - self.shape[1])]
+                 neighbours.append(self.get_centroid(id - self.shape[1]))
 
         return neighbours
 
@@ -119,7 +119,7 @@ class SOM:
 
         # initiating centroids
         for i in range(len(self.cen)):
-            self.cen[i] = centroid(i, data.shape[1:], scope)
+            self.cen[i] = centroid(i, data.shape[-1], scope)
 
 
         # executing actuall algorithm
