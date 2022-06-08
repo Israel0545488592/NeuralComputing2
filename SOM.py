@@ -8,7 +8,10 @@
 
 from argparse import ArgumentError
 from cmath import inf
+from matplotlib.collections import LineCollection
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 class centroid:
@@ -35,6 +38,9 @@ class centroid:
         self.loc += factor * point
         return np.linalg.norm(old_loc - self.loc)   # uclidian distance / how much did 'self' move  
 
+    def get_loc(self) -> np.ndarray:
+        return self.loc
+
 
 class SOM:
 
@@ -60,7 +66,7 @@ class SOM:
         self.cen = np.zeros(self.shape).flatten().astype(centroid)
 
     # get centroid by id, not obvious if the shape isn't 1 dimentional
-    def get_centroid(self, id):
+    def get_centroid(self, id) -> centroid:
 
         if len(self.shape == 1):
             return self.cen[id]
@@ -146,8 +152,22 @@ class SOM:
 
 
     # this method should display the centroids together with their topolagy (lines between neighbours)
-    def display():
-        pass
+    def display(self, ax=None):
+        if ax == None:
+            ax = plt.gca()
+        get_loc_func = lambda c: c.get_loc()
+        vfunc = np.vectorize(get_loc_func)
+        dots = vfunc(self.cen)
+        ax.scatter(dots)
+        ax.add_collection(LineCollection(dots))
+        if dots.shape == 3:
+            ax.add_collection(LineCollection(dots.transpose(1,0,2)))
+        plt.show()
+
+
+
+        
+
 
 
     # TODO: display, tests, prephormance avaluation, jupiter notebook
