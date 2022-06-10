@@ -49,7 +49,7 @@ class centroid:
 
     def __repr__(self) -> str:
 
-        return "id: " + str(self.id) + ", loc: " + str(self.loc) + ", neighbours" + str(self.neighbours) + "\n"
+        return "id: " + str(self.id) + ", loc: " + str(self.loc) + ", neighbours: " + str(self.neighbours) + "\n"
 
 
 
@@ -77,7 +77,7 @@ class SOM:
         self.clear(dim, start)
 
     # resetting map
-    def clear(self, dim: int, start: np.ndarray):
+    def clear(self, start: np.ndarray):
 
         SIZE = MUL(self.shape)
 
@@ -105,7 +105,7 @@ class SOM:
                 size *= self.shape[dim]
             return id
 
-        
+
         for id in range(SIZE):
 
             cor = id_to_cor(id)
@@ -135,16 +135,18 @@ class SOM:
     def get_centroid(self, id) -> centroid:
         return self.cen[id]
 
-    def get_neighbours(self, id: int, depth: int):
+    def get_neighbours(self, src: int, depth: int):
 
         neighbourhood = set()
-        neighbourhood.add(id)
+        neighbourhood.add(src)
 
         for i in range(depth):
-            tmp = set()
-            for j in neighbourhood:
-                tmp = tmp.union(self.get_centroid(j).neighbours.copy())
+            tmp = neighbourhood
+            for id in neighbourhood:
+                tmp = tmp.union(self.get_centroid(id).neighbours.copy())
+            neighbourhood = tmp
 
+        neighbourhood.remove(src)
         return neighbourhood
 
     # finding closest centroid to a data instance
