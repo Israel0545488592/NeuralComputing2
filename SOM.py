@@ -74,7 +74,7 @@ class SOM:
 
         # constructing the centroid data structure
         # self.shape dictates topology
-        self.clear(dim, start)
+        self.clear(start)
 
     # resetting map
     def clear(self, start: np.ndarray):
@@ -156,7 +156,7 @@ class SOM:
         ind = 0
         for c in self.cen.values():
 
-            score = c.distance(vector) - (wins[c.id] - itr / len(wins))  # conscious formula
+            score = c.distance(vector) + (wins[c.id] / len(wins))  # conscious formula
 
             if score < min_score:
                 min_score = score
@@ -196,8 +196,9 @@ class SOM:
                 itr += 1
 
             momentum *= 2
+            depth -= 1
 
-        return self.cen.copy(), itr
+        return self.cen.copy(), itr, wins
 
     # this method should display the centroids together with their topology (lines between neighbours)
     def display(self, ax=None):
