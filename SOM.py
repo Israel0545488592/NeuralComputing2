@@ -52,6 +52,7 @@ class centroid:
         return "id: " + str(self.id) + ", loc: " + str(self.loc) + ", neighbours" + str(self.neighbours) + "\n"
 
 
+
 class SOM:
 
     def __init__(self, shape: tuple, learning_rate: float, dim: int, start: np.ndarray):
@@ -78,42 +79,48 @@ class SOM:
     # resetting map
     def clear(self, dim: int, start: np.ndarray):
 
-        size = MUL(self.shape)
+        SIZE = MUL(self.shape)
 
-        for i in range(size):
+        def id_to_cor(id):          # cor = centroid's topology-cordinates
 
-            self.cen[i] = centroid(i, start.copy())
-
-            cor = [0] * len(self.shape)    # centroid topology-cordinates
-            d = len(self.shape) -1
-            id = i
-            while d >= 0:
-
-                size //= self.shape[d]
-                val = id // size
-                cor[d] = val
-                id -= (size*val)
-                d -= 1
             size = MUL(self.shape)
+            cor = [0] * len(self.shape)
+            dim = len(self.shape) -1
 
-            def cor_to_id(cor):
-                id = 0
-                size = 1
-                for d in range(len(self.shape)):
-                    id += size*cor[d]
-                    size *= self.shape[d]
-                return id
+            while dim >= 0:
+                size //= self.shape[dim]
+                val = id // size
+                cor[dim] = val
+                id -= (size*val)
+                dim -= 1
+            return cor
 
-            for j in range(len(cor)):   # connecting to neighbours
+        def cor_to_id(cor):
 
-                if cor[j] +1 < self.shape[j]:   # asserting in-bounds
-                    cor[j] +=1
-                    self.cen[i].add_neighbour(cor_to_id(cor))
-                    cor[j] -=1
-                if cor[j] -1 >= 0:
-                    cor[j] -=1
-                    self.cen[i].add_neighbour(cor_to_id(cor))
-                    cor[j] +=1
+            id = 0
+            size = 1
+
+            for dim in range(len(self.shape)):
+                id += size*cor[dim]
+                size *= self.shape[dim]
+            return id
+
+        
+        for id in range(SIZE):
+
+            cor = id_to_cor(id)
+            self.cen[id] = centroid(id, start.copy())
+
+            for dim in range(len(cor)):   # connecting to neighbours
+
+                if cor[dim] +1 < self.shape[dim]:   # asserting in-bounds
+                    cor[dim] +=1
+                    self.cen[id].add_neighbour(cor_to_id(cor))
+                    cor[dim] -=1
+                if cor[dim] -1 >= 0:
+                    cor[dim] -=1
+                    self.cen[id].add_neighbour(cor_to_id(cor))
+                    cor[dim] +=1
 
 
     def __repr__(self) -> str:
@@ -204,5 +211,5 @@ class SOM:
             ax.add_collection(LineCollection(dots.transpose(1, 0, 2), cmap = plt.cm.brg))
         plt.show()
 
-    # TODO: display, tests, prephormance avaluation, jupiter notebook
+    # TODO: display, prephormance avaluation
     # and of course monkey hands

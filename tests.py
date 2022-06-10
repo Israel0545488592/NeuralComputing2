@@ -1,4 +1,3 @@
-from select import select
 from SOM import *
 import unittest
 
