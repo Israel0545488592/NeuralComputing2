@@ -209,12 +209,24 @@ class SOM:
 
         dots = np.array([c.get_loc() for c in self.cen.values()])
         ax.scatter(dots[:, 0], dots[:, 1])
-        
-        for c1 in self.cen.values():
-            #get all the points that have an id that is bigger than our current point (to avoid drawing a line over a line) 
-            lines = [[c1.get_loc(),self.cen[i].get_loc()] for i in self.get_neighbours(c1.id,1) if i>c1.id]
-            #add all lines found to axes
-            ax.add_collection(LineCollection(lines))
+        """
+        newShape = list(self.shape)
+        if len(dots.shape) > 1:
+            newShape = newShape +  list(dots.shape[1:])
+        print(newShape,dots.shape)
+        dots = dots.reshape(newShape)
+
+        if show_lines:
+            ax.add_collection(LineCollection(dots))
+            if dots.shape[-1] == 2:
+                ax.add_collection(LineCollection(dots.transpose(1, 0, 2), cmap = plt.cm.brg))
+        """
+        if show_lines:
+            for c1 in self.cen.values():
+                #get all the points that have an id that is bigger than our current point (to avoid drawing a line over a line) 
+                lines = [[c1.get_loc(),self.cen[i].get_loc()] for i in self.get_neighbours(c1.id,1) if i>c1.id]
+                #add all lines found to axes
+                ax.add_collection(LineCollection(lines))
         plt.show()
 
     # TODO: display, prephormance avaluation
