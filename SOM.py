@@ -12,20 +12,27 @@ from matplotlib.collections import LineCollection
 import numpy as np
 import matplotlib.pyplot as plt
 
+# product of an iterable container
+def MUL(con):
+    size = 1
+    for i in con:
+        size *= i
+    return size
+
 
 class centroid:
 
-    def __init__(self, id: int, dimention: int, scope: tuple):
+    def __init__(self, id: int, start: np.ndarray):
 
-        if id < 0 or dimention <= 0:
-            raise ArgumentError('only non negative input')
-        if len(scope) != 2:
-            raise ArgumentError('scope should specify exactly max and min values')
-        if scope[0] > scope[1]:
-            raise ArgumentError('min > max, scope')
+        if id < 0:
+            raise ArgumentError('positive dimension and non-negative id required')
 
         self.id = id
-        self.loc = np.random.uniform(scope, dimention)
+        self.loc = start
+        self.neighbours = set()
+
+    def add_neighbour(self, id: int):
+        self.neighbours.add(id)
 
     def distance(self, vector: np.ndarray):
         # euclidean distance
@@ -34,71 +41,111 @@ class centroid:
     def advance(self, factor, point):
 
         old_loc = self.loc.copy()  # before update
-        self.loc = factor * (point + self.loc)
+        self.loc += factor * (point - self.loc)
         return np.linalg.norm(old_loc - self.loc)  # euclidean distance / how much did 'self' move
 
     def get_loc(self) -> np.ndarray:
         return self.loc
 
+    def __repr__(self) -> str:
+
+        return "id: " + str(self.id) + ", loc: " + str(self.loc) + ", neighbours" + str(self.neighbours) + "\n"
+
 
 class SOM:
 
-    def __init__(self, shape: tuple, learning_rate: float):
+    def __init__(self, shape: tuple, learning_rate: float, dim: int, start: np.ndarray):
 
-        if len(shape) > 2:
-            raise ArgumentError('can only deal with up to 2 dimensional topology')
-        if len(shape) <= 0:
+        if len(shape) == 0:
             raise ArgumentError('no topology, argument `shape` is empty')
-        for dim in shape:
-            if dim <= 0:
-                raise ArgumentError('only positive input')
+        for d in shape:
+            if d <= 0:
+                raise ArgumentError('positive dimension')
+        if dim <= 0:
+            raise ArgumentError('positive dimension')
+        if len(start) != dim:
+            raise ArgumentError('start is the initial location of the centroids must match in length `dim`')
 
         self.learning_rate = learning_rate
         self.shape = shape
+        self.start = start
+        self.cen = dict() # id -> centroid
 
-        # allocating memory for centroids the shape of this strucute
-        # also defines each centroid's neighbourhood
-        self.clear()
+        # constructing the centroid data structure
+        # self.shape dictates topology
+        self.clear(dim, start)
 
     # resetting map
-    def clear(self):
-        self.cen = np.zeros(self.shape).flatten().astype(centroid)
+    def clear(self, dim: int, start: np.ndarray):
 
-    # get centroid by id, not obvious if the shape isn't 1 dimentional
+        size = MUL(self.shape)
+
+        for i in range(size):
+
+            self.cen[i] = centroid(i, start.copy())
+
+            cor = [0] * len(self.shape)    # centroid topology-cordinates
+            d = len(self.shape) -1
+            id = i
+            while d >= 0:
+
+                size //= self.shape[d]
+                val = id // size
+                cor[d] = val
+                id -= (size*val)
+                d -= 1
+            size = MUL(self.shape)
+
+            def cor_to_id(cor):
+                id = 0
+                size = 1
+                for d in range(len(self.shape)):
+                    id += size*cor[d]
+                    size *= self.shape[d]
+                return id
+
+            for j in range(len(cor)):   # connecting to neighbours
+
+                if cor[j] +1 < self.shape[j]:   # asserting in-bounds
+                    cor[j] +=1
+                    self.cen[i].add_neighbour(cor_to_id(cor))
+                    cor[j] -=1
+                if cor[j] -1 >= 0:
+                    cor[j] -=1
+                    self.cen[i].add_neighbour(cor_to_id(cor))
+                    cor[j] +=1
+
+
+    def __repr__(self) -> str:
+
+        ans = ""
+        for c in self.cen.values():
+            ans += c.__repr__()
+        return ans
+
+
+    # get centroid by id, not obvious if the shape isn't 1 dimensional
     def get_centroid(self, id) -> centroid:
+        return self.cen[id]
 
-        if len(self.shape) == 1:
-            return self.cen[id]
-        return self.cen[id // self.shape[1]][id % self.shape[1]]  # matrix like structure
+    def get_neighbours(self, id: int, depth: int):
 
-    def get_neighbours(self, id: int):
+        neighbourhood = set()
+        neighbourhood.add(id)
 
-        neighbours = []
+        for i in range(depth):
+            tmp = set()
+            for j in neighbourhood:
+                tmp = tmp.union(self.get_centroid(j).neighbours.copy())
 
-        # asserting in-bounds
-        if len(self.shape) == 1:
-            if id - 1 >= 0:
-                neighbours.append(self.get_centroid(id - 1))
-            if id + 1 < self.shape[0]:
-                neighbours.append(self.get_centroid(id + 1))
-        else:
-            if (id - 1) % self.shape[1] != self.shape[1] - 1:
-                neighbours.append(self.get_centroid(id - 1))
-            if (id + 1) % self.shape[1] != 0:
-                neighbours.append(self.get_centroid(id + 1))
-            if (id + self.shape[1]) < self.shape[0] * self.shape[1]:
-                neighbours.append(self.get_centroid(id + self.shape[1]))
-            if (id - self.shape[1]) >= 0:
-                neighbours.append(self.get_centroid(id - self.shape[1]))
-
-        return neighbours
+        return neighbourhood
 
     # finding closest centroid to a data instance
     def closest(self, wins: np.ndarray, vector: np.ndarray, itr: int):
 
         min_score = inf
         ind = 0
-        for c in self.cen:
+        for c in self.cen.values():
 
             score = c.distance(vector) - (wins[c.id] - itr / len(wins))  # conscious formula
 
@@ -109,23 +156,20 @@ class SOM:
         wins[ind] += 1
         return ind
 
-    def train(self, data: np.ndarray, scope: tuple):
+    def train(self, data: np.ndarray, halt: float, depth: int):
+
+        # halt is a relatively small value
+        # depth states how far of a neighbour is effected
 
         if len(data.shape) < 2:
             raise ArgumentError('expecting some instances of whatever vector-spase')
 
-        # initiating centroids
-        for i in range(len(self.cen)):
-            self.cen[i] = centroid(i, data.shape[-1], scope)
-
         # executing actuall algorithm
 
         wins = np.zeros(len(self.cen))  # taking into account past winners
-        self.cen.reshape(self.shape)    # reshaping to define the topology
 
         itr = 0
         diff = inf                      # a measure of change that happened in the iteration
-        halt = np.abs(scope[1]) / 10    # small diff relative to the max scalar in the data
         momentum = 1                    # factor for diminishing the learning rate each epoc
 
         while diff > halt:
@@ -136,9 +180,9 @@ class SOM:
 
                 # advance closest centroid towards the data instance
                 diff = winner.advance(self.learning_rate / momentum, instance)
-                # and its neigbours too but less so
-                for c in self.get_neighbours(winner.id):
-                    c.advance(self.learning_rate / 2 * momentum, instance)
+                # and its neighbours too but less so
+                for id in self.get_neighbours(winner.id, depth):
+                    self.get_centroid(id).advance(self.learning_rate / 3*momentum, instance)
 
                 itr += 1
 
