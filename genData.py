@@ -147,9 +147,3 @@ def plot_model_results(y_true,y_pred,labels=None,name=None):
     RocCurveDisplay.from_predictions(y_true,y_pred,ax=ax2)
     if name != None:
         plt.savefig(name)
-
-
-
-
-
-
