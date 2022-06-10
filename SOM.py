@@ -11,6 +11,7 @@ from cmath import inf
 from matplotlib.collections import LineCollection
 import numpy as np
 import matplotlib.pyplot as plt
+from sympy import true
 
 # product of an iterable container
 def MUL(con):
@@ -201,17 +202,19 @@ class SOM:
         return self.cen.copy(), itr, wins
 
     # this method should display the centroids together with their topology (lines between neighbours)
-    def display(self, ax=None):
+    def display(self, ax=None, show_lines=True):
 
         if ax is None:
             ax = plt.gca()
 
-        dots = np.array([c.get_loc() for c in self.cen.flatten()])
+        dots = np.array([c.get_loc() for c in self.cen.values()])
         ax.scatter(dots[:, 0], dots[:, 1])
-        dots = dots.reshape(list(self.shape) + list(self.cen.flatten()[0].get_loc().shape))
-        ax.add_collection(LineCollection(dots))
-        if dots.shape[-1] == 2:
-            ax.add_collection(LineCollection(dots.transpose(1, 0, 2), cmap = plt.cm.brg))
+        
+        for c1 in self.cen.values():
+            #get all the points that have an id that is bigger than our current point (to avoid drawing a line over a line) 
+            lines = [[c1.get_loc(),self.cen[i].get_loc()] for i in self.get_neighbours(c1.id,1) if i>c1.id]
+            #add all lines found to axes
+            ax.add_collection(LineCollection(lines))
         plt.show()
 
     # TODO: display, prephormance avaluation
