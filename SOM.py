@@ -192,14 +192,13 @@ class SOM:
                 diff = winner.advance(self.learning_rate / momentum, instance)
                 # and its neighbours too but less so
                 for id in self.get_neighbours(winner.id, depth):
-                    self.get_centroid(id).advance(self.learning_rate / 3*momentum, instance)
+                    self.get_centroid(id).advance(self.learning_rate / momentum, instance)
 
                 itr += 1
 
             momentum *= 2
             depth -= 1
-
-        return self.cen.copy(), itr, wins
+            self.display()
 
     # this method should display the centroids together with their topology (lines between neighbours)
     def display(self, ax=None, show_lines=True):
