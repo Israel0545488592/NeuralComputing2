@@ -11,7 +11,6 @@ from cmath import inf
 from matplotlib.collections import LineCollection
 import numpy as np
 import matplotlib.pyplot as plt
-from sympy import true
 
 # product of an iterable container
 def MUL(con):
@@ -56,7 +55,7 @@ class centroid:
 
 class SOM:
 
-    def __init__(self, shape: tuple, learning_rate: float, dim: int, start: np.ndarray):
+    def __init__(self, shape: tuple, learning_rate: float, dim: int, start: np.ndarray, close: bool = False):
 
         if len(shape) == 0:
             raise ArgumentError('no topology, argument `shape` is empty')
@@ -75,10 +74,10 @@ class SOM:
 
         # constructing the centroid data structure
         # self.shape dictates topology
-        self.clear(start)
+        self.clear(start, close)
 
     # resetting map
-    def clear(self, start: np.ndarray):
+    def clear(self, start: np.ndarray, close: bool):
 
         SIZE = MUL(self.shape)
 
@@ -112,16 +111,27 @@ class SOM:
             cor = id_to_cor(id)
             self.cen[id] = centroid(id, start.copy())
 
-            for dim in range(len(cor)):   # connecting to neighbours
+            for dim in range(len(cor)):                         # connecting to neighbours
 
-                if cor[dim] +1 < self.shape[dim]:   # asserting in-bounds
+                if cor[dim] +1 < self.shape[dim]:               # asserting in-bounds
                     cor[dim] +=1
                     self.cen[id].add_neighbour(cor_to_id(cor))
                     cor[dim] -=1
+                elif close:                                     # if out of bounds yet closed shape than connect from the other side
+                    tmp = cor[dim]
+                    cor[dim] = 0
+                    self.cen[id].add_neighbour(cor_to_id(cor))
+                    cor[dim] = tmp
                 if cor[dim] -1 >= 0:
                     cor[dim] -=1
                     self.cen[id].add_neighbour(cor_to_id(cor))
                     cor[dim] +=1
+                elif close:
+                    tmp = cor[dim]
+                    cor[dim] = self.shape[dim] -1
+                    self.cen[id].add_neighbour(cor_to_id(cor))
+                    cor[dim] = tmp
+
 
 
     def __repr__(self) -> str:
@@ -199,6 +209,7 @@ class SOM:
             momentum *= 2
             depth -= 1
             self.display()
+            print('\niteration: ' + str(itr) + '\n')
 
     # this method should display the centroids together with their topology (lines between neighbours)
     def display(self, ax=None, show_lines=True):
