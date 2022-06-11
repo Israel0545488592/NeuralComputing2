@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay, roc_curve
 import matplotlib.pyplot as plt
 from sympy import true
-
+import cv2
 def_seed=None
 
 #use defualt seed if no seed was given
@@ -50,7 +50,7 @@ def generate_points(_min,_max,decision_func=None,size=1000,seed=None,rng_type=""
 
         if decision_func != None:
             #resize temp and make it keep only the good values
-            temp = temp[decision_func(temp)]
+            temp = temp[decision_func(temp,**kwargs)]
         temp = temp[:size-curr_size]
 
         #add the correct values to the final array 
@@ -61,6 +61,7 @@ def generate_points(_min,_max,decision_func=None,size=1000,seed=None,rng_type=""
         
         curr_size = out.shape[0]
         i+=1
+        
         #once we reached our target size, stop
         if curr_size == size:
             break
@@ -74,20 +75,25 @@ def generate_points(_min,_max,decision_func=None,size=1000,seed=None,rng_type=""
 ###--------------------###
 
 #decision funcion that returns what elements we generated and we want to keep for part A 1 and 2
-def A_1_2_decision_func(arr):
+def A_1_2_decision_func(arr,**kwargs):
     vals = np.array([np.sum(np.square(e-0.5)) for e in arr])
     vals[(vals>=0)&(vals<=0.5**2)] = 0
     
     return vals == 0
 
 #decision funcion that returns what elements we generated and we want to keep for part A 3
-def A_3_decision_func(arr):
+def A_3_decision_func(arr,**kwargs):
     vals = np.array([np.sum(np.square(e)) for e in arr])
     vals[(vals>=2)&(vals<=4)] = 0
     return vals == 0
 
-
-
+def B1_decision_func(arr,**kwargs):
+    if "img" in kwargs:
+        img = kwargs["img"]
+        vals = np.array([img[int(e[1])][int(e[0])] for e in arr])
+    else:
+        vals = np.array([0 for e in arr])
+    return vals==0
 
 ###--------------------###
 ### dataset creation
@@ -109,6 +115,13 @@ def create_A2(size=1000,seed=None,rng_type="noraml",**kwargs):
 def create_A3(size=1000,seed=None,**kwargs):
     seed = get_seed(seed)
     out = generate_points(-2,2,A_3_decision_func,size,seed=seed,**kwargs)
+    return out
+
+#generate a data set for Part B
+def create_B(size=1000,seed=None,img="hand1.png",**kwargs):
+    seed = get_seed(seed)
+    img = cv2.imread(img,cv2.IMREAD_GRAYSCALE)
+    out = generate_points(0,img.shape[0]-1,B1_decision_func,size,seed=seed,img=img,**kwargs)
     return out
 
 
