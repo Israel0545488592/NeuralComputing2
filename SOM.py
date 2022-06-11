@@ -40,7 +40,7 @@ class centroid:
 
     def advance(self, factor, point):
 
-        old_loc = self.loc.copy()  # before update
+        old_loc = self.loc.copy()                  # before update
         self.loc += factor * (point - self.loc)
         return np.linalg.norm(old_loc - self.loc)  # euclidean distance / how much did 'self' move
 
@@ -72,8 +72,7 @@ class SOM:
 
         self.learning_rate = learning_rate
         self.shape = shape
-        self.start = start
-        self.cen = dict() # id -> centroid
+        self.cen = dict()  # id -> centroid
 
         # constructing the centroid data structure
         # self.shape dictates topology

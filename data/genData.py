@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay, roc_curve
+from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
 import matplotlib.pyplot as plt
 import cv2
 def_seed = None
