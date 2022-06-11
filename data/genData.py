@@ -24,9 +24,14 @@ def generate_numbers(_min,_max,size=1000,seed=None,rng_type="",**kwargs):
     
     rng = np.random.RandomState(seed)
     if rng_type == "normal":
-        rnd = rng.normal(size=size,**kwargs)
-        rnd = -min(0,np.min(rnd)) + rnd
-        rnd = _max*rnd/np.max(rnd)
+        rnd = rng.normal(size=size)
+        #rnd = -np.min(rnd) + rnd
+        if "scale" in kwargs:
+            scale = kwargs["scale"]
+        else:
+            scale = 1
+
+        rnd = rnd*scale +  (_max - _min)/2
         
     elif rng_type == "power":
         rnd = np.abs((_max-_min)*rng.power(size=size,**kwargs) + _min + rng.choice([0,-1],size))
