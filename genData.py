@@ -1,8 +1,6 @@
 import numpy as np
-import pandas as pd
-from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay, roc_curve
+from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
 import matplotlib.pyplot as plt
-from sympy import true
 
 def_seed=None
 

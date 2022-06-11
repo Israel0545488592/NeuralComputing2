@@ -45,7 +45,10 @@ class centroid:
         return np.linalg.norm(old_loc - self.loc)  # euclidean distance / how much did 'self' move
 
     def get_loc(self) -> np.ndarray:
-        return self.loc
+        return self.loc.copy()
+
+    def get_neighbours(self) -> set:
+        return self.neighbours.copy()
 
     def __repr__(self) -> str:
 
@@ -154,7 +157,7 @@ class SOM:
         for i in range(depth):
             tmp = neighbourhood
             for id in neighbourhood:
-                tmp = tmp.union(self.get_centroid(id).neighbours.copy())
+                tmp = tmp.union(self.get_centroid(id).get_neighbours())
             neighbourhood = tmp
 
         neighbourhood.remove(src)
@@ -175,6 +178,7 @@ class SOM:
 
         wins[ind] += 1
         return ind
+        
 
     def train(self, data: np.ndarray, halt: float, depth: int):
 
@@ -211,6 +215,7 @@ class SOM:
             self.display()
             print('\niteration: ' + str(itr) + '\n')
 
+
     # this method should display the centroids together with their topology (lines between neighbours)
     def display(self, ax=None, show_lines=True):
 
@@ -228,5 +233,4 @@ class SOM:
                 ax.add_collection(LineCollection(lines))
         plt.show()
 
-    # TODO: display, prephormance avaluation
-    # and of course monkey hands
+    # TODO: A2 should be a-uniform,  monkey hands
