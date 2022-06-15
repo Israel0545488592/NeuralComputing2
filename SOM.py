@@ -217,9 +217,10 @@ class SOM:
 
     # this method should display the centroids together with their topology (lines between neighbours)
     def display(self, ax=None, show_lines=True):
-
+        show = False
         if ax is None:
             ax = plt.gca()
+            show = True
 
         dots = np.array([c.get_loc() for c in self.cen.values()])
         ax.scatter(dots[:, 0], dots[:, 1])
@@ -230,6 +231,7 @@ class SOM:
                 lines = [[c1.get_loc(),self.cen[i].get_loc()] for i in self.get_neighbours(c1.id,1) if i>c1.id]
                 #add all lines found to axes
                 ax.add_collection(LineCollection(lines))
-        plt.show()
+        if show:
+            plt.show()
 
     # TODO: A2 should be a-uniform,  monkey hands
